@@ -334,7 +334,7 @@ function! s:GetCurlCommand(request)
         \)
     endif
     "eturn 'curl ' . join(curlArgs) . ' ' . shellescape(a:request.host . a:request.requestPath)
-    return 'curl ' . join(curlArgs) . ' ' . shellescape(a:request.host . a:request.requestPath) . ' -w  "????Connect Time: %{time_connect} - Start Transfer : %{time_starttransfer} - Total Time: %{time_total}"'
+    return 'curl ' . join(curlArgs) . ' ' . shellescape(a:request.host . a:request.requestPath) . ' -w  "?>?>?>?>Connect Time: %{time_connect} || Start Transfer: %{time_starttransfer} || Total Time: %{time_total}\n============\n"'
 endfunction
 
 """
@@ -431,8 +431,8 @@ function! s:DisplayOutput(tmpBufName, outputInfo)
     setlocal modifiable
     silent! normal! ggdG
     let output = join(a:outputInfo['outputChunks'], "\n\n")
-    let timeswap = split(output, '????')
-    let reformatted = join(reverse(timeswap), "\n\n")
+    let timeswap = split(output, '?>?>?>?>')
+    let reformatted = join(reverse(timeswap), "")
     call setline('.', split(substitute(reformatted, '[[:return:]]', '', 'g'), '\v\n'))
 
     """ Display commands in quickfix window if any.
