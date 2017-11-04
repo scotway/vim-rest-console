@@ -333,8 +333,8 @@ function! s:GetCurlCommand(request)
         \   s:GetCurlDataArgs(httpVerb, dataBody)
         \)
     endif
-    return 'curl ' . join(curlArgs) . ' ' . shellescape(a:request.host . a:request.requestPath)
-    "return 'curl ' . join(curlArgs) . ' ' . shellescape(a:request.host . a:request.requestPath) . ' -w  \'---- Connect Time: %{time_connect} - Start Transfer : %{time_starttransfer} - Total Time: %{time_total}---- \''
+    "eturn 'curl ' . join(curlArgs) . ' ' . shellescape(a:request.host . a:request.requestPath)
+    return 'curl ' . join(curlArgs) . ' ' . shellescape(a:request.host . a:request.requestPath) . ' -w  "????Connect Time: %{time_connect} - Start Transfer : %{time_starttransfer} - Total Time: %{time_total}"'
 endfunction
 
 """
@@ -431,7 +431,9 @@ function! s:DisplayOutput(tmpBufName, outputInfo)
     setlocal modifiable
     silent! normal! ggdG
     let output = join(a:outputInfo['outputChunks'], "\n\n")
-    call setline('.', split(substitute(output, '[[:return:]]', '', 'g'), '\v\n'))
+    let timeswap = split(output, '????')
+    let reformatted = join(reverse(timeswap), "\n\n")
+    call setline('.', split(substitute(reformatted, '[[:return:]]', '', 'g'), '\v\n'))
 
     """ Display commands in quickfix window if any.
     if (!empty(a:outputInfo['commands']))
@@ -443,7 +445,7 @@ function! s:DisplayOutput(tmpBufName, outputInfo)
     """ Detect content-type based on the returned header.
     let emptyLineNum = 0
     if includeResponseHeader
-        call cursor(1, 0)
+        call cursor(3, 0)
         let emptyLineNum = search('\v^\s*$', 'n')
         let contentTypeLineNum = search('\v\c^Content-Type:', 'n', emptyLineNum)
 
@@ -516,7 +518,7 @@ function! s:RunQuery(start, end)
     let resumeFrom = a:start
     let shouldShowCommand = s:GetOptValue('vrc_show_command', 0)
     let shouldDebug = s:GetOptValue('vrc_debug', 0)
-    while resumeFrom < a:end
+    "while resumeFrom < a:end
         let request = s:ParseRequest(a:start, resumeFrom, a:end, globSection)
         if !request.success
             echom request.msg
@@ -530,12 +532,14 @@ function! s:RunQuery(start, end)
         silent !clear
         redraw!
 
-        call add(outputInfo['outputChunks'], system(curlCmd))
+        "Vim 8!
+        call job_start(add(outputInfo['outputChunks'], system(curlCmd)))
+        "call add(outputInfo['outputChunks'], system(curlCmd))
         if shouldShowCommand
             call add(outputInfo['commands'], curlCmd)
         endif
         let resumeFrom = request.resumeFrom
-    endwhile
+    "endwhile
 
     call s:DisplayOutput(
     \   s:GetOptValue('vrc_output_buffer_name', '__REST_response__'),
